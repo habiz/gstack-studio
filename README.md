@@ -1,75 +1,57 @@
 # gstack Studio
 
-A local web UI for gstack's ideation sprint — run **Office Hours → CEO Review → Design Review → Eng Review → Design Doc** in your browser without touching a terminal.
+Run a full product ideation sprint in your browser — **Office Hours → CEO Review → Design Review → Eng Review → Design Doc** — powered by Claude Code and gstack.
 
 ## Prerequisites
 
-You need two things installed before running gstack Studio:
+Install these once before your first run:
 
-1. **Claude Code** — [claude.ai/code](https://claude.ai/code)
+1. **Claude Code**
    ```sh
    npm install -g @anthropic-ai/claude-code
    claude login
    ```
 
-2. **gstack** — the skills that power each sprint phase
+2. **gstack**
    ```sh
    npm install -g gstack
    ```
 
-If anything is missing, gstack Studio will detect it on launch and show you exactly what to install.
+> If anything is missing, gstack Studio will detect it and show you exactly what to install when you open it.
 
-## Run
+## Start
 
 ```sh
 npx gstack-studio
 ```
 
-Your browser opens automatically. No installation needed — Bun is installed automatically if not already present.
+Your browser opens automatically. Every time — including after the first run.
 
-No Bun, no Node, no terminal required after setup.
+## How to use
 
-## Usage
+1. Describe your idea and click **Start Sprint**
+2. Answer Claude's questions as it works through each phase
+3. Click **Move to next phase** when you're ready to advance
+4. After the final phase, your **Design Doc** is ready to download
 
-1. Double-click `gstack-studio` (or run `./gstack-studio` in a terminal)
-2. Your browser opens at `http://localhost:3000`
-3. Describe your idea and click **Start Sprint**
-4. Work through each phase — answer questions, click **Move to next phase** when ready
-5. Download your **Design Doc** at the end
-
-Past sprints are saved automatically and appear on the start screen. You can reload any previous sprint to review its output or continue from where you left off.
+Past sprints are saved automatically. Come back any time to pick up where you left off.
 
 ## Developer Setup
 
-Clone the repo and run with hot reload:
-
 ```sh
+git clone https://github.com/habiz/gstack-studio
+cd gstack-studio
 bun install
 bun run start
 ```
 
-Build the standalone binary:
-
-```sh
-bun run build
-```
-
-Output: `./gstack-studio` (~58MB, includes the Bun runtime).
-
 ## How It Works
 
 ```
-Browser UI  ←→  Bun HTTP server (localhost:3000)
-                    ↓
-              claude CLI subprocess
-                    ↓
-              gstack skills (~/.claude/skills/)
+Browser  ←→  Bun server (localhost:3000)  ←→  claude CLI  ←→  gstack skills
 ```
 
-- Each sprint phase spawns a `claude` subprocess with the appropriate gstack skill
-- Output streams to the browser via SSE in real time
-- Sessions are persisted to `~/.gstack-studio/sessions/` as JSON
-- The binary embeds all static assets — nothing to deploy, nothing to configure
+Each sprint phase spawns a `claude` subprocess with the relevant gstack skill. Output streams to the browser live via SSE. Sessions are saved to `~/.gstack-studio/sessions/`.
 
 ## License
 
