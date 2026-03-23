@@ -21,7 +21,13 @@ If anything is missing, gstack Studio will detect it on launch and show you exac
 
 ## Download
 
-Grab the latest binary from [Releases](../../releases) and double-click it. Your browser opens automatically.
+1. Grab `gstack-studio` and `launch.command` from [Releases](../../releases)
+2. Put both files in the same folder
+3. Double-click `launch.command`
+
+Your browser opens automatically.
+
+> **First launch only:** macOS may show a security warning on `launch.command`. Right-click it → **Open** → **Open** to allow it. This only happens once.
 
 No Bun, no Node, no terminal required after setup.
 
