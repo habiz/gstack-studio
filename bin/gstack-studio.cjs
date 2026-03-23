@@ -8,24 +8,33 @@ const fs = require("fs");
 const BUN_DEFAULT = path.join(os.homedir(), ".bun", "bin", "bun");
 
 function findBun() {
-  // Check PATH first
   try { execSync("bun --version", { stdio: "ignore" }); return "bun"; } catch {}
-  // Check default install location
   if (fs.existsSync(BUN_DEFAULT)) return BUN_DEFAULT;
   return null;
 }
 
 function installBun() {
-  console.log("Installing Bun (required to run gstack Studio)...");
+  console.log("");
+  console.log("┌─────────────────────────────────────────────┐");
+  console.log("│           gstack Studio — First Run          │");
+  console.log("└─────────────────────────────────────────────┘");
+  console.log("");
+  console.log("  Bun runtime not found. Installing now...");
+  console.log("  This is a one-time setup (~10 seconds).");
+  console.log("");
+
   try {
     if (process.platform === "win32") {
       execSync('powershell -c "irm bun.sh/install.ps1 | iex"', { stdio: "inherit" });
     } else {
-      execSync("curl -fsSL https://bun.sh/install | bash", { stdio: "inherit" });
+      execSync("curl -fsSL https://bun.sh/install | bash", { stdio: "pipe" });
     }
-    console.log("Bun installed.\n");
+    console.log("  ✓ Bun installed.");
+    console.log("");
   } catch {
-    console.error("Failed to install Bun. Install it manually from https://bun.sh then run npx gstack-studio again.");
+    console.error("  ✗ Failed to install Bun automatically.");
+    console.error("    Install it manually: https://bun.sh");
+    console.error("    Then run: npx gstack-studio");
     process.exit(1);
   }
 }
@@ -35,10 +44,13 @@ if (!bun) {
   installBun();
   bun = findBun();
   if (!bun) {
-    console.error("Bun installed but not found. Open a new terminal and run npx gstack-studio again.");
+    console.error("  ✗ Bun was installed but could not be found in this session.");
+    console.error("    Open a new terminal window and run: npx gstack-studio");
     process.exit(1);
   }
 }
+
+console.log("  Starting gstack Studio...");
 
 const serverPath = path.join(__dirname, "..", "src", "server.ts");
 const proc = spawn(bun, ["run", serverPath], { stdio: "inherit" });
