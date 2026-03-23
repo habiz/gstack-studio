@@ -1,6 +1,6 @@
 {
   "name": "gstack-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local web UI for gstack ideation sprints",
   "module": "src/server.ts",
   "type": "module",
@@ -18,7 +18,13 @@
   "engines": {
     "node": ">=18"
   },
-  "keywords": ["gstack", "claude", "ai", "design-doc", "sprint"],
+  "keywords": [
+    "gstack",
+    "claude",
+    "ai",
+    "design-doc",
+    "sprint"
+  ],
   "author": "habiz",
   "license": "MIT",
   "devDependencies": {
