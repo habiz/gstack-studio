@@ -19,15 +19,13 @@ You need two things installed before running gstack Studio:
 
 If anything is missing, gstack Studio will detect it on launch and show you exactly what to install.
 
-## Download
+## Run
 
-1. Grab `gstack-studio` and `launch.command` from [Releases](../../releases)
-2. Put both files in the same folder
-3. Double-click `launch.command`
+```sh
+npx gstack-studio
+```
 
-Your browser opens automatically.
-
-> **First launch only:** macOS may show a security warning on `launch.command`. Right-click it → **Open** → **Open** to allow it. This only happens once.
+Your browser opens automatically. No installation needed — Bun is installed automatically if not already present.
 
 No Bun, no Node, no terminal required after setup.
 
