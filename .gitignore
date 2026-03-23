@@ -1,0 +1,6 @@
+node_modules/
+gstack-studio
+*.env
+.DS_Store
+.claude/
+index.ts
