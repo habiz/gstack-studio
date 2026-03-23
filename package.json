@@ -1,12 +1,26 @@
 {
   "name": "gstack-studio",
+  "version": "0.1.0",
+  "description": "Local web UI for gstack ideation sprints",
   "module": "src/server.ts",
   "type": "module",
-  "private": true,
+  "bin": {
+    "gstack-studio": "./bin/gstack-studio.cjs"
+  },
+  "files": [
+    "src/",
+    "bin/"
+  ],
   "scripts": {
     "start": "bun run src/server.ts",
     "build": "bun build --compile src/server.ts --outfile gstack-studio-bin && zip -r gstack-studio-macos.zip gstack-studio.app gstack-studio-bin"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["gstack", "claude", "ai", "design-doc", "sprint"],
+  "author": "habiz",
+  "license": "MIT",
   "devDependencies": {
     "@types/bun": "latest"
   },
