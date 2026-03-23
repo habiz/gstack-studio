@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gstack Studio — Setup</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0c0c0e;
+      --surface:    #141418;
+      --border:     #252530;
+      --accent:     #7c6aff;
+      --text:       #e2e2e8;
+      --text-dim:   #6b6b7a;
+      --green:      #4ade80;
+      --red:        #f87171;
+      --yellow:     #fbbf24;
+      --mono: "SF Mono", "Fira Code", Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --radius: 10px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 48px 24px 64px;
+    }
+
+    .inner {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .logo {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .logo-g { color: var(--accent); }
+
+    .heading {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    /* Checklist */
+    .checks {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .check-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .check-icon.ok    { color: var(--green); }
+    .check-icon.fail  { color: var(--red); }
+
+    .check-body { flex: 1; min-width: 0; }
+    .check-name { font-weight: 600; font-size: 14px; }
+    .check-status-ok   { font-size: 12px; color: var(--green); }
+    .check-status-fail { font-size: 12px; color: var(--red); }
+
+    /* Steps */
+    .steps-heading {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .step-content { flex: 1; padding-top: 5px; }
+    .step-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .step-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .code-block:hover { border-color: var(--accent); }
+    .copy-hint { font-size: 11px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+    .copy-hint.copied { color: var(--green); }
+
+    /* Retry button */
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+    }
+    .retry-btn:hover { background: color-mix(in srgb, var(--accent) 85%, #fff); }
+
+    .all-good {
+      padding: 20px;
+      background: color-mix(in srgb, var(--green) 8%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border));
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--green);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="inner">
+
+      <div class="logo"><span class="logo-g">g</span>stack Studio</div>
+
+      <div>
+        <h1 class="heading">Setup required</h1>
+        <p class="sub">gstack Studio needs a couple of things before you can run your first sprint.</p>
+      </div>
+
+      <!-- Dep status injected by server -->
+      <div class="checks" id="checks">__CHECKS__</div>
+
+      <!-- Steps (only shown if something is missing) -->
+      <div id="steps-section" style="display:__STEPS_DISPLAY__">
+        <div class="steps-heading">How to fix this</div>
+
+        <div id="step-claude" style="display:__CLAUDE_DISPLAY__">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Install Claude Code</div>
+              <div class="step-desc">Open Terminal and run:</div>
+              <div class="code-block" onclick="copyCode(this, 'npm install -g @anthropic-ai/claude-code')">
+                <span>npm install -g @anthropic-ai/claude-code</span>
+                <span class="copy-hint">click to copy</span>
+              </div>
+              <div class="step-desc" style="margin-top:8px">Then log in:</div>
+              <div class="code-block" onclick="copyCode(this, 'claude login')">
+                <span>claude login</span>
+                <span class="copy-hint">click to copy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="step-gstack" style="display:__GSTACK_DISPLAY__">
+          <div class="step">
+            <div class="step-num" id="gstack-step-num">__GSTACK_STEP_NUM__</div>
+            <div class="step-content">
+              <div class="step-title">Install gstack</div>
+              <div class="step-desc">Open Terminal and run:</div>
+              <div class="code-block" onclick="copyCode(this, 'npm install -g gstack')">
+                <span>npm install -g gstack</span>
+                <span class="copy-hint">click to copy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" style="display:__STEPS_DISPLAY__">
+          <div class="step-num">__FINAL_STEP_NUM__</div>
+          <div class="step-content">
+            <div class="step-title">Reload this page</div>
+            <div class="step-desc">Once the steps above are done, click the button below.</div>
+            <a href="/" class="retry-btn">Check again →</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="all-good-banner" style="display:__ALL_GOOD_DISPLAY__" class="all-good">
+        ✓ Everything looks good — <a href="/" style="color:inherit">open gstack Studio</a>
+      </div>
+
+    </div>
+  </div>
+  <script>
+    function copyCode(el, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const hint = el.querySelector('.copy-hint');
+        hint.textContent = 'copied!';
+        hint.classList.add('copied');
+        setTimeout(() => { hint.textContent = 'click to copy'; hint.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

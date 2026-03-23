@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gstack Studio</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <header id="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-g">g</span>stack Studio
+        </div>
+        <nav id="phase-stepper" class="stepper hidden">
+          <!-- injected by JS -->
+        </nav>
+        <button id="new-sprint-btn" class="btn-new-sprint hidden">New Sprint</button>
+      </div>
+    </header>
+
+    <!-- ── Start screen ────────────────────────────────────────────────────── -->
+    <section id="start-screen" class="screen">
+      <div class="start-inner">
+        <h1 class="start-heading">What are you building?</h1>
+        <p class="start-sub">
+          5 phases · Office Hours → CEO → Design → Engineering → Design Doc
+        </p>
+        <form id="start-form">
+          <textarea
+            id="idea-input"
+            placeholder="Describe your idea — the problem you're solving, who it's for, and why it matters…"
+            rows="6"
+            autofocus
+          ></textarea>
+          <button type="submit" id="start-btn" class="btn-primary">
+            Start Sprint
+            <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Past sprints -->
+        <div id="past-sprints" class="past-sprints hidden">
+          <div class="past-heading">Past sprints</div>
+          <div id="past-list" class="past-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Sprint screen ───────────────────────────────────────────────────── -->
+    <section id="sprint-screen" class="screen hidden">
+
+      <!-- Output area -->
+      <div id="output-area">
+        <div id="output-scroll">
+          <div id="output-content"></div>
+          <div id="cursor" class="cursor hidden"></div>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div id="bottom-bar">
+
+        <!-- Status / thinking indicator -->
+        <div id="thinking-bar" class="thinking-bar hidden">
+          <span class="thinking-dot"></span>
+          <span class="thinking-dot"></span>
+          <span class="thinking-dot"></span>
+          <span class="thinking-label">thinking…</span>
+        </div>
+
+        <!-- Input + Continue row (both can be visible at once) -->
+        <div id="input-row">
+          <!-- Input field (shown when awaiting_input) -->
+          <form id="input-form" class="input-form hidden">
+            <textarea
+              id="reply-input"
+              placeholder="Your reply…"
+              rows="1"
+              autocomplete="off"
+            ></textarea>
+            <button type="submit" class="btn-send" aria-label="Send">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M14 8H2M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </form>
+
+          <!-- Continue button — shown alongside input when phase has output -->
+          <div id="continue-bar" class="continue-bar hidden">
+            <button id="continue-btn" class="btn-continue">
+              Move to <span id="next-phase-name"></span>
+              <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interrupted session warning -->
+        <div id="interrupted-bar" class="interrupted-bar hidden">
+          <span class="interrupted-label">This session was paused mid-phase. Advancing will skip to the next phase.</span>
+          <button id="interrupted-dismiss" class="interrupted-dismiss">✕</button>
+        </div>
+
+        <!-- Error bar -->
+        <div id="error-bar" class="error-bar hidden">
+          <span class="error-label">Something went wrong</span>
+          <button id="retry-btn" class="btn-secondary">Retry phase</button>
+        </div>
+
+        <!-- Design doc actions (shown after final phase) -->
+        <div id="doc-bar" class="doc-bar hidden">
+          <span class="doc-label">Sprint complete</span>
+          <button id="download-btn" class="btn-secondary">Download Design Doc</button>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
