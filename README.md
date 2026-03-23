@@ -1,42 +1,49 @@
 # gstack Studio
 
-Run a full product ideation sprint in your browser — **Office Hours → CEO Review → Design Review → Eng Review → Design Doc** — powered by Claude Code and gstack.
+*A browser UI for gstack's product ideation sprint — Office Hours → CEO Review → Design Review → Eng Review → Design Doc.*
 
-## Prerequisites
-
-Install these once before your first run:
-
-1. **Claude Code**
-   ```sh
-   npm install -g @anthropic-ai/claude-code
-   claude login
-   ```
-
-2. **gstack**
-   ```sh
-   npm install -g gstack
-   ```
-
-> If anything is missing, gstack Studio will detect it and show you exactly what to install when you open it.
-
-## Start
+## Quick start
 
 ```sh
 npx gstack-studio
 ```
 
-Your browser opens automatically. Every time — including after the first run.
+Your browser opens automatically. If Claude Code or gstack isn't installed, the app will detect it and show you exactly what to run.
 
-## How to use
+## The sprint
 
-1. Describe your idea and click **Start Sprint**
-2. Answer Claude's questions as it works through each phase
-3. Click **Move to next phase** when you're ready to advance
-4. After the final phase, your **Design Doc** is ready to download
+| Phase | What happens |
+|---|---|
+| Office Hours | Your idea gets reframed before you write a line of code |
+| CEO Review | Scope challenged, premises tested |
+| Design Review | Design dimensions rated and improved |
+| Eng Review | Architecture, edge cases, failure modes surfaced |
+| Design Doc | Downloadable output artifact |
 
-Past sprints are saved automatically. Come back any time to pick up where you left off.
+You control the pace. Advance when you're satisfied with Claude's output.
 
-## Developer Setup
+## Prerequisites
+
+Only needed once:
+
+```sh
+npm install -g @anthropic-ai/claude-code && claude login
+npm install -g gstack
+```
+
+## Sessions
+
+Every sprint is saved to `~/.gstack-studio/sessions/`. Pick up where you left off.
+
+## How it works
+
+```
+Browser ←→ Bun server (localhost:3000) ←→ claude CLI ←→ gstack skills
+```
+
+Each phase spawns a claude subprocess with the relevant gstack skill. Output streams live to the browser via SSE.
+
+## Contributing
 
 ```sh
 git clone https://github.com/habiz/gstack-studio
@@ -44,14 +51,6 @@ cd gstack-studio
 bun install
 bun run start
 ```
-
-## How It Works
-
-```
-Browser  ←→  Bun server (localhost:3000)  ←→  claude CLI  ←→  gstack skills
-```
-
-Each sprint phase spawns a `claude` subprocess with the relevant gstack skill. Output streams to the browser live via SSE. Sessions are saved to `~/.gstack-studio/sessions/`.
 
 ## License
 
