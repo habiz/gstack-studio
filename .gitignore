@@ -4,3 +4,6 @@ gstack-studio
 .DS_Store
 .claude/
 index.ts
+gstack-studio-bin
+gstack-studio-macos.zip
+gstack-studio

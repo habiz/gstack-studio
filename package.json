@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun run src/server.ts",
-    "build": "bun build --compile src/server.ts --outfile gstack-studio"
+    "build": "bun build --compile src/server.ts --outfile gstack-studio-bin && zip -r gstack-studio-macos.zip gstack-studio.app gstack-studio-bin"
   },
   "devDependencies": {
     "@types/bun": "latest"
