@@ -257,7 +257,7 @@ async function startSubprocess(phase: number) {
       "--verbose",
       "--plugin-dir", skillsDir,
       "--add-dir", skillsDir,
-      "--allowedTools", "Skill,AskUserQuestion,Read,Write,Bash,Glob,Grep",
+      "--allowedTools", "Skill,Read,Write,Bash,Glob,Grep",
     ],
     stdout: "pipe",
     stderr: "pipe",
