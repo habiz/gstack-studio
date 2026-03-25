@@ -10,6 +10,8 @@ npx gstack-studio
 
 Your browser opens automatically. If Claude Code or gstack isn't installed, the app will detect it and show you exactly what to run.
 
+![gstack Studio screenshot](screenshot.png)
+
 ## The sprint
 
 | Phase | What happens |
