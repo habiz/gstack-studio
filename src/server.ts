@@ -95,6 +95,12 @@ const PHASES = [
   { name: "Design Doc",    skill: null }, // auto-compiled
 ] as const;
 
+// ─── Subprocess state ─────────────────────────────────────────────────────────
+
+let pendingToolUseId: string | null = null;
+let toolUseAccum: { id: string; name: string; json: string } | null = null;
+let isAutoplanRun = false;
+
 // ─── Session state ────────────────────────────────────────────────────────────
 
 type SessionState = "idle" | "running" | "awaiting_input" | "complete" | "error";
@@ -108,6 +114,8 @@ const session = {
   state: "idle" as SessionState,
   phase: -1,
   idea: "",
+  mode: "side-project",
+  usedAutoplan: false,
   phaseOutputs: [] as string[],
 };
 
@@ -153,6 +161,8 @@ async function loadLatestSession() {
     session.state = data.state ?? "idle";
     session.phase = data.phase ?? -1;
     session.idea = data.idea ?? "";
+    session.mode = data.mode ?? "side-project";
+    session.usedAutoplan = data.usedAutoplan ?? false;
     session.phaseOutputs = data.phaseOutputs ?? [];
 
     // If the server was killed mid-run, mark as error
@@ -202,13 +212,22 @@ function trimCtx(text: string): string {
   return `[...earlier content trimmed...]\n\n${text.slice(-CTX_CHARS)}`;
 }
 
+const MODE_LABELS: Record<string, string> = {
+  "startup":      "A - Building a startup (real company, users, revenue)",
+  "hackathon":    "B - Hackathon / demo (time-boxed, need to impress)",
+  "side-project": "C - Side project (just exploring, having fun, no pressure)",
+  "research":     "D - Research / open source (building for a community)",
+};
+
 function buildKickoffMessage(phase: number, idea: string, outputs: string[]): string {
   const ctx = (label: string, text: string) =>
     `## ${label}\n\n${trimCtx(text)}`;
 
   switch (phase) {
-    case 0:
-      return `/office-hours\n\nI want to explore this idea: ${idea}`;
+    case 0: {
+      const modeLabel = MODE_LABELS[session.mode ?? "side-project"] ?? MODE_LABELS["side-project"];
+      return `/office-hours\n\nI want to explore this idea: ${idea}\n\nMy goal: ${modeLabel}`;
+    }
     case 1:
       return `/plan-ceo-review\n\nIdea: ${idea}\n\n${ctx("Office Hours", outputs[0] ?? "")}`;
     case 2:
@@ -216,6 +235,13 @@ function buildKickoffMessage(phase: number, idea: string, outputs: string[]): st
     case 3:
       return `/plan-eng-review\n\nIdea: ${idea}\n\n${ctx("Office Hours", outputs[0] ?? "")}\n\n${ctx("CEO Review", outputs[1] ?? "")}\n\n${ctx("Design Review", outputs[2] ?? "")}`;
     case 4:
+      if (session.usedAutoplan) {
+        return (
+          "Compile a clean design document in markdown from this ideation sprint.\n\n" +
+          ctx("Office Hours", outputs[0] ?? "") + "\n\n" +
+          ctx("Autoplan Review (CEO + Design + Eng)", outputs[1] ?? "")
+        );
+      }
       return (
         "Compile a clean design document in markdown from this ideation sprint.\n\n" +
         ctx("Office Hours", outputs[0] ?? "") + "\n\n" +
@@ -228,16 +254,19 @@ function buildKickoffMessage(phase: number, idea: string, outputs: string[]): st
   }
 }
 
-async function startSubprocess(phase: number) {
+async function startSubprocess(phase: number, customMessage?: string) {
   if (activeProc) {
     try { activeProc.kill(); } catch {}
     activeProc = null;
   }
 
-  // Clear event buffer for the new phase
+  // Clear event buffer and tool state for the new phase
   eventBuffer = [];
+  pendingToolUseId = null;
+  toolUseAccum = null;
+  isAutoplanRun = false;
 
-  const message = buildKickoffMessage(phase, session.idea, session.phaseOutputs);
+  const message = customMessage ?? buildKickoffMessage(phase, session.idea, session.phaseOutputs);
   session.state = "running";
   session.phase = phase;
   if (!session.phaseOutputs[phase]) session.phaseOutputs[phase] = "";
@@ -257,7 +286,7 @@ async function startSubprocess(phase: number) {
       "--verbose",
       "--plugin-dir", skillsDir,
       "--add-dir", skillsDir,
-      "--allowedTools", "Skill,Read,Write,Bash,Glob,Grep",
+      "--allowedTools", "Skill,Read,Write,Bash,Glob,Grep,AskUserQuestion",
     ],
     stdout: "pipe",
     stderr: "pipe",
@@ -300,11 +329,18 @@ async function startSubprocess(phase: number) {
     activeProc = null;
 
     if (exitCode === 0) {
+      if (isAutoplanRun) {
+        // Autoplan covers phases 1-3 in one shot — skip to phase 3 complete
+        session.phaseOutputs[2] = "";
+        session.phaseOutputs[3] = "";
+        session.phase = 3;
+        isAutoplanRun = false;
+      }
       session.state = "complete";
-      broadcast("state", { state: "complete", phase });
+      broadcast("state", { state: "complete", phase: session.phase });
     } else {
       session.state = "error";
-      broadcast("state", { state: "error", phase, exitCode });
+      broadcast("state", { state: "error", phase: session.phase, exitCode });
     }
     persistSession();
   })();
@@ -319,14 +355,39 @@ function processStreamLine(line: string, phase: number) {
 
   // Real-time text delta — emitted by --include-partial-messages
   if (type === "stream_event") {
-    const event = msg.event as { type: string; delta?: { type: string; text?: string } };
-    if (event?.type === "content_block_delta" && event.delta?.type === "text_delta") {
-      const text = event.delta.text ?? "";
-      if (text) {
-        session.phaseOutputs[phase] = (session.phaseOutputs[phase] ?? "") + text;
-        broadcast("chunk", { text, phase });
+    const event = msg.event as {
+      type: string;
+      index?: number;
+      content_block?: { type: string; id?: string; name?: string };
+      delta?: { type: string; text?: string; partial_json?: string };
+    };
+
+    if (event?.type === "content_block_start" && event.content_block?.type === "tool_use") {
+      toolUseAccum = { id: event.content_block.id ?? "", name: event.content_block.name ?? "", json: "" };
+    }
+
+    if (event?.type === "content_block_delta") {
+      if (event.delta?.type === "text_delta") {
+        const text = event.delta.text ?? "";
+        if (text) {
+          session.phaseOutputs[phase] = (session.phaseOutputs[phase] ?? "") + text;
+          broadcast("chunk", { text, phase });
+        }
+      } else if (event.delta?.type === "input_json_delta" && toolUseAccum) {
+        toolUseAccum.json += event.delta.partial_json ?? "";
       }
     }
+
+    if (event?.type === "content_block_stop" && toolUseAccum) {
+      if (toolUseAccum.name === "AskUserQuestion") {
+        pendingToolUseId = toolUseAccum.id;
+        session.state = "awaiting_input";
+        broadcast("state", { state: "awaiting_input", phase });
+        persistSession();
+      }
+      toolUseAccum = null;
+    }
+
     return;
   }
 
@@ -414,6 +475,7 @@ const server = Bun.serve({
       session.state = "idle";
       session.phase = -1;
       session.idea = "";
+      session.usedAutoplan = false;
       session.phaseOutputs = [];
       return json({ ok: true });
     }
@@ -421,10 +483,11 @@ const server = Bun.serve({
     // ── POST /api/start ───────────────────────────────────────────────────────
     // Body: { idea: string }  (phase 0 only; subsequent phases use /api/advance)
     if (url.pathname === "/api/start" && req.method === "POST") {
-      const body = await req.json().catch(() => ({})) as { idea?: string };
+      const body = await req.json().catch(() => ({})) as { idea?: string; mode?: string };
       if (!body.idea?.trim()) return json({ error: "idea is required" }, 400);
 
       session.idea = body.idea.trim();
+      session.mode = body.mode ?? "side-project";
       session.phaseOutputs = [];
       startSubprocess(0);
       return json({ ok: true, phase: 0 });
@@ -435,6 +498,19 @@ const server = Bun.serve({
       if (session.state !== "error") return json({ error: "not in error state" }, 400);
       startSubprocess(session.phase);
       return json({ ok: true, phase: session.phase });
+    }
+
+    // ── POST /api/autoplan ────────────────────────────────────────────────────
+    // Run /autoplan covering phases 1-3 in one shot, then jump to phase 3 complete
+    if (url.pathname === "/api/autoplan" && req.method === "POST") {
+      if (session.phase !== 0 || session.state !== "complete") {
+        return json({ error: "autoplan only available after Office Hours" }, 400);
+      }
+      const msg = `/autoplan\n\nIdea: ${session.idea}\n\n## Office Hours\n\n${trimCtx(session.phaseOutputs[0] ?? "")}`;
+      session.usedAutoplan = true;
+      isAutoplanRun = true;
+      startSubprocess(1, msg);
+      return json({ ok: true, phase: 1 });
     }
 
     // ── POST /api/advance ─────────────────────────────────────────────────────
@@ -455,7 +531,20 @@ const server = Bun.serve({
       if (!text) return json({ error: "text required" }, 400);
       if (!activeProc) return json({ error: "no active process" }, 400);
 
-      const msg = JSON.stringify({ type: "user", message: { role: "user", content: text } });
+      let msg: string;
+      if (pendingToolUseId) {
+        // Reply to an AskUserQuestion tool call — send a tool_result
+        msg = JSON.stringify({
+          type: "user",
+          message: {
+            role: "user",
+            content: [{ type: "tool_result", tool_use_id: pendingToolUseId, content: text }],
+          },
+        });
+        pendingToolUseId = null;
+      } else {
+        msg = JSON.stringify({ type: "user", message: { role: "user", content: text } });
+      }
       activeProc.stdin.write(new TextEncoder().encode(msg + "\n"));
 
       session.state = "running";

@@ -18,6 +18,9 @@ let state = {
 };
 
 let eventSource = null;
+let thinkingInterval = null;
+let thinkingStart = 0;
+let selectedMode = "side-project";
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 
@@ -33,6 +36,7 @@ const outputContent = $("output-content");
 const outputScroll  = $("output-scroll");
 const cursor        = $("cursor");
 const thinkingBar   = $("thinking-bar");
+const thinkingTimer = $("thinking-timer");
 const inputForm     = $("input-form");
 const replyInput    = $("reply-input");
 const continueBar   = $("continue-bar");
@@ -41,6 +45,7 @@ const continueBtn   = $("continue-btn");
 const docBar        = $("doc-bar");
 const downloadBtn   = $("download-btn");
 const newSprintBtn  = $("new-sprint-btn");
+const autoplanBtn     = $("autoplan-btn");
 const errorBar        = $("error-bar");
 const retryBtn        = $("retry-btn");
 const interruptedBar  = $("interrupted-bar");
@@ -210,22 +215,36 @@ function setBottomBar(mode) {
   errorBar.classList.add("hidden");
   cursor.classList.add("hidden");
 
+  // Clear any existing timer
+  if (thinkingInterval) { clearInterval(thinkingInterval); thinkingInterval = null; }
+  thinkingTimer.textContent = "";
+
   if (mode === "error") {
     errorBar.classList.remove("hidden");
   } else if (mode === "running") {
     thinkingBar.classList.remove("hidden");
     cursor.classList.remove("hidden");
+    thinkingStart = Date.now();
+    thinkingInterval = setInterval(() => {
+      const s = Math.floor((Date.now() - thinkingStart) / 1000);
+      thinkingTimer.textContent = s > 3 ? `${s}s` : "";
+    }, 1000);
   } else if (mode === "awaiting_input") {
     inputForm.classList.remove("hidden");
     cursor.classList.remove("hidden");
     replyInput.focus();
 
   } else if (mode === "phase_complete") {
-    // Subprocess exited on its own (rare) — same logic
     const nextPhase = state.phase + 1;
     if (nextPhase < PHASES.length) {
       nextPhaseName.textContent = PHASES[nextPhase].name;
       continueBar.classList.remove("hidden");
+      // After Office Hours: show Autoplan as a fast-track option
+      if (state.phase === 0) {
+        autoplanBtn.classList.remove("hidden");
+      } else {
+        autoplanBtn.classList.add("hidden");
+      }
     } else {
       docBar.classList.remove("hidden");
     }
@@ -370,7 +389,7 @@ async function newSprint() {
   ideaInput.value = "";
 }
 
-async function startSprint(idea) {
+async function startSprint(idea, mode) {
   // Switch to sprint screen
   state.screen = "sprint";
   startScreen.classList.add("hidden");
@@ -390,7 +409,7 @@ async function startSprint(idea) {
   await fetch("/api/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idea }),
+    body: JSON.stringify({ idea, mode }),
   });
 
   connectStream();
@@ -410,6 +429,11 @@ async function sendReply(text) {
 async function retryPhase() {
   setBottomBar("running");
   await fetch("/api/retry", { method: "POST" });
+}
+
+async function runAutoplan() {
+  setBottomBar("running");
+  await fetch("/api/autoplan", { method: "POST" });
 }
 
 async function advancePhase() {
@@ -441,12 +465,21 @@ function downloadDesignDoc() {
 
 // ── Event listeners ────────────────────────────────────────────────────────────
 
+// Mode pill selection
+document.querySelectorAll(".mode-pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".mode-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    selectedMode = pill.dataset.mode;
+  });
+});
+
 startForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const idea = ideaInput.value.trim();
   if (!idea) return;
   startBtn.disabled = true;
-  startSprint(idea);
+  startSprint(idea, selectedMode);
 });
 
 // Auto-grow reply textarea
@@ -473,6 +506,7 @@ inputForm.addEventListener("submit", (e) => {
 });
 
 continueBtn.addEventListener("click", advancePhase);
+autoplanBtn.addEventListener("click", runAutoplan);
 retryBtn.addEventListener("click", retryPhase);
 interruptedDismiss.addEventListener("click", () => interruptedBar.classList.add("hidden"));
 downloadBtn.addEventListener("click", downloadDesignDoc);

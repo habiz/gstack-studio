@@ -36,6 +36,15 @@
             rows="6"
             autofocus
           ></textarea>
+          <div class="mode-selector">
+            <span class="mode-label">I'm building this as a</span>
+            <div class="mode-pills">
+              <button type="button" class="mode-pill" data-mode="startup">Startup</button>
+              <button type="button" class="mode-pill" data-mode="hackathon">Hackathon</button>
+              <button type="button" class="mode-pill active" data-mode="side-project">Side project</button>
+              <button type="button" class="mode-pill" data-mode="research">Research</button>
+            </div>
+          </div>
           <button type="submit" id="start-btn" class="btn-primary">
             Start Sprint
             <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
@@ -71,7 +80,7 @@
           <span class="thinking-dot"></span>
           <span class="thinking-dot"></span>
           <span class="thinking-dot"></span>
-          <span class="thinking-label">thinking…</span>
+          <span class="thinking-label">thinking… <span id="thinking-timer"></span></span>
         </div>
 
         <!-- Input + Continue row (both can be visible at once) -->
@@ -93,6 +102,12 @@
 
           <!-- Continue button — shown alongside input when phase has output -->
           <div id="continue-bar" class="continue-bar hidden">
+            <button id="autoplan-btn" class="btn-autoplan hidden">
+              Autoplan
+              <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
             <button id="continue-btn" class="btn-continue">
               Move to <span id="next-phase-name"></span>
               <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
