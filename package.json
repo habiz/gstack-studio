@@ -1,6 +1,6 @@
 {
   "name": "gstack-studio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Local web UI for gstack ideation sprints",
   "module": "src/server.ts",
   "type": "module",
