@@ -40,8 +40,6 @@ const thinkingTimer = $("thinking-timer");
 const inputForm     = $("input-form");
 const replyInput    = $("reply-input");
 const continueBar   = $("continue-bar");
-const nextPhaseName = $("next-phase-name");
-const continueBtn   = $("continue-btn");
 const docBar        = $("doc-bar");
 const downloadBtn   = $("download-btn");
 const newSprintBtn  = $("new-sprint-btn");
@@ -235,18 +233,18 @@ function setBottomBar(mode) {
     replyInput.focus();
 
   } else if (mode === "phase_complete") {
-    const nextPhase = state.phase + 1;
-    if (nextPhase < PHASES.length) {
-      nextPhaseName.textContent = PHASES[nextPhase].name;
+    if (state.phase === 4) {
+      // Design Doc complete — just show download
+      docBar.classList.remove("hidden");
+    } else {
       continueBar.classList.remove("hidden");
-      // After Office Hours: show Autoplan as a fast-track option
-      if (state.phase === 0) {
+      // Autoplan available whenever Office Hours output exists
+      if (state.phaseOutputs[0]) {
         autoplanBtn.classList.remove("hidden");
       } else {
         autoplanBtn.classList.add("hidden");
       }
-    } else {
-      docBar.classList.remove("hidden");
+      renderPhasePicker();
     }
   }
 }
@@ -301,6 +299,44 @@ function handleRunState(s, phase) {
   } else if (s === "error") {
     setBottomBar("error");
   }
+}
+
+// ── Phase picker ───────────────────────────────────────────────────────────────
+
+const phasePicker = $("phase-picker");
+
+function renderPhasePicker() {
+  // Review phases 1-3 + Design Doc (4)
+  const reviewPhases = [1, 2, 3, 4];
+  phasePicker.innerHTML = reviewPhases.map(i => {
+    const done = !!(state.phaseOutputs[i]);
+    const isDoc = i === 4;
+    const label = done
+      ? `↺ ${PHASES[i].name}`
+      : PHASES[i].name;
+    const cls = ["btn-phase", done ? "done" : "", isDoc ? "design-doc" : ""].filter(Boolean).join(" ");
+    return `<button class="${cls}" data-phase="${i}">${label}</button>`;
+  }).join("");
+
+  phasePicker.querySelectorAll("[data-phase]").forEach(btn => {
+    btn.addEventListener("click", () => jumpToPhase(parseInt(btn.dataset.phase)));
+  });
+}
+
+async function jumpToPhase(target) {
+  if (target === 4) {
+    const missing = [1, 2, 3].filter(i => !state.phaseOutputs[i]).map(i => PHASES[i].name);
+    if (missing.length > 0) {
+      const ok = confirm(`You haven't run: ${missing.join(", ")}. The Design Doc will be compiled from what's available. Continue?`);
+      if (!ok) return;
+    }
+  }
+  setBottomBar("running");
+  await fetch("/api/advance", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phase: target }),
+  });
 }
 
 // ── Past sprints ───────────────────────────────────────────────────────────────
@@ -437,14 +473,9 @@ async function runAutoplan() {
 }
 
 async function advancePhase() {
-  setBottomBar("running");
-
-  await fetch("/api/advance", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  // Stream is already connected; server will broadcast the new phase's events
+  // Legacy — kept for session load path; use jumpToPhase for new navigation
+  const next = state.phase + 1;
+  if (next < PHASES.length) jumpToPhase(next);
 }
 
 function downloadDesignDoc() {
@@ -505,7 +536,6 @@ inputForm.addEventListener("submit", (e) => {
   sendReply(text);
 });
 
-continueBtn.addEventListener("click", advancePhase);
 autoplanBtn.addEventListener("click", runAutoplan);
 retryBtn.addEventListener("click", retryPhase);
 interruptedDismiss.addEventListener("click", () => interruptedBar.classList.add("hidden"));

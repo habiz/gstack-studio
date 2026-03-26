@@ -503,8 +503,8 @@ const server = Bun.serve({
     // ── POST /api/autoplan ────────────────────────────────────────────────────
     // Run /autoplan covering phases 1-3 in one shot, then jump to phase 3 complete
     if (url.pathname === "/api/autoplan" && req.method === "POST") {
-      if (session.phase !== 0 || session.state !== "complete") {
-        return json({ error: "autoplan only available after Office Hours" }, 400);
+      if (!session.phaseOutputs[0] || session.state !== "complete") {
+        return json({ error: "autoplan requires Office Hours output" }, 400);
       }
       const msg = `/autoplan\n\nIdea: ${session.idea}\n\n## Office Hours\n\n${trimCtx(session.phaseOutputs[0] ?? "")}`;
       session.usedAutoplan = true;
@@ -514,14 +514,16 @@ const server = Bun.serve({
     }
 
     // ── POST /api/advance ─────────────────────────────────────────────────────
-    // Advance to the next phase (server already has all prior output buffered)
+    // Jump to any phase (non-linear). Body: { phase: number }
     if (url.pathname === "/api/advance" && req.method === "POST") {
-      const nextPhase = session.phase + 1;
-      if (nextPhase >= PHASES.length) return json({ error: "all phases complete" }, 400);
-      if (session.state !== "complete") return json({ error: "current phase not complete" }, 400);
-
-      startSubprocess(nextPhase);
-      return json({ ok: true, phase: nextPhase });
+      if (session.state !== "complete") return json({ error: "a phase is still running" }, 400);
+      const body = await req.json().catch(() => ({})) as { phase?: number };
+      const target = body.phase;
+      if (target === undefined || target < 1 || target >= PHASES.length) {
+        return json({ error: "invalid phase" }, 400);
+      }
+      startSubprocess(target);
+      return json({ ok: true, phase: target });
     }
 
     // ── POST /api/input ───────────────────────────────────────────────────────

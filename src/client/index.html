@@ -100,7 +100,7 @@
             </button>
           </form>
 
-          <!-- Continue button — shown alongside input when phase has output -->
+          <!-- Phase picker — shown when a phase completes -->
           <div id="continue-bar" class="continue-bar hidden">
             <button id="autoplan-btn" class="btn-autoplan hidden">
               Autoplan
@@ -108,12 +108,8 @@
                 <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <button id="continue-btn" class="btn-continue">
-              Move to <span id="next-phase-name"></span>
-              <svg class="btn-arrow" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+            <div id="phase-picker" class="phase-picker"></div>
+
           </div>
         </div>
 

@@ -571,6 +571,47 @@ textarea::placeholder {
 .btn-autoplan:hover { opacity: 0.85; }
 .btn-autoplan .btn-arrow { width: 14px; height: 14px; flex-shrink: 0; }
 
+/* Phase picker — non-linear navigation after a phase completes */
+.phase-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-phase:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-phase.done {
+  color: var(--muted);
+}
+
+.btn-phase.done:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-phase.design-doc {
+  border-style: dashed;
+}
+
 /* Continue button — subtle, shown alongside the input form */
 .btn-continue {
   display: inline-flex;
