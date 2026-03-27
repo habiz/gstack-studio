@@ -54,4 +54,4 @@ console.log("  Starting gstack Studio...");
 
 const serverPath = path.join(__dirname, "..", "src", "server.ts");
 const proc = spawn(bun, ["run", serverPath], { stdio: "inherit" });
-proc.on("exit", (code) => process.exit(code ?? 0));
+proc.on("exit", (code) => process.exit(code == null ? 0 : code));
