@@ -33,6 +33,14 @@ npm install -g @anthropic-ai/claude-code && claude login
 npm install -g gstack
 ```
 
+## Mac launcher (no terminal)
+
+Download `gstack-studio.command` from the [latest release](https://github.com/habiz/gstack-studio/releases/latest) and double-click it.
+
+**First run only:** macOS will block it with an "unidentified developer" warning. Right-click → **Open** → **Open** to approve. After that, double-click works normally.
+
+Requires Node.js. Get it at [nodejs.org](https://nodejs.org) if you don't have it.
+
 ## Sessions
 
 Every sprint is saved to `~/.gstack-studio/sessions/`. Pick up where you left off.
