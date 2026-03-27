@@ -35,7 +35,7 @@ npm install -g gstack
 
 ## Mac launcher (no terminal)
 
-Download `gstack-studio.command` from the [latest release](https://github.com/habiz/gstack-studio/releases/latest) and double-click it.
+Download `gstack-studio.zip` from the [latest release](https://github.com/habiz/gstack-studio/releases/latest), unzip it, and double-click `gstack-studio.command`.
 
 **First run only:** macOS will block it with an "unidentified developer" warning. Right-click → **Open** → **Open** to approve. After that, double-click works normally.
 
